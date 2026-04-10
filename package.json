@@ -1,0 +1,11 @@
+{
+  "name": "video-tools",
+  "version": "1.0.0",
+  "bin": {
+    "convert-webm": "./convert.js"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "fluent-ffmpeg": "^2.1.3"
+  }
+}
