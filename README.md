@@ -1,239 +1,147 @@
-# 🎬 Video Tools CLI
+# Video Tools CLI
 
-CLI simple, rápida y profesional para convertir videos **MP4 → WebM** directamente desde tu escritorio usando **FFmpeg** y Node.js.
-
----
-
-## 🚀 Características
-
-- ✅ Conversión automática a **WebM (VP9 + Opus)**
-- ✅ Solo necesitas el **nombre del archivo**
-- ✅ Asume archivos ubicados en el **Desktop**
-- ✅ Validación de existencia del archivo
-- ✅ Progreso en tiempo real en consola
-- ✅ Manejo de errores robusto
-- ✅ Configuración optimizada (calidad vs tamaño)
-- ✅ Ejecutable global tipo comando (`convert-webm`)
+CLI para convertir videos **MP4 y MOV a WebM** desde el escritorio, usando FFmpeg y Node.js.  
+Funciona en **Windows** y **macOS** (Apple Silicon e Intel).
 
 ---
 
-## 📦 Instalación
+## Características
 
-### 1. Clonar el proyecto (o crear manualmente)
+- Conversión MP4 → WebM y MOV → WebM (VP9 + Opus)
+- Detección automática del escritorio en Windows y macOS
+- Manejo de videos sin pista de audio
+- Protección contra sobreescritura de archivos existentes
+- Validación de formato antes de iniciar la conversión
+- Progreso en tiempo real en consola
+
+---
+
+## Requisitos
+
+- Node.js ≥ 18
+- npm ≥ 8
+
+FFmpeg y ffprobe se descargan automáticamente como dependencias del paquete.  
+No es necesario instalarlos manualmente.
+
+---
+
+## Instalación
 
 ```bash
 git clone <repo-url>
-cd video-tools
-```
-
-### 2. Instalar dependencias
-
-```bash
+cd Convert-Webm
 npm install
 ```
 
----
+### Registro como comando global (opcional)
 
-## 🔗 Registrar comando global
+#### macOS
 
-Para usar el comando desde cualquier ubicación del sistema:
+`npm link` falla con `EACCES` si npm apunta a `/usr/local` (requiere root).  
+Ejecuta esto **una sola vez** para redirigir los paquetes globales a tu carpeta de usuario:
+
+```bash
+mkdir -p ~/.npm-global
+npm config set prefix ~/.npm-global
+echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Luego ya funciona sin `sudo`:
 
 ```bash
 npm link
 ```
 
+#### Windows
+
+En Windows `npm link` funciona directamente sin pasos adicionales:
+
+```bash
+npm link
+```
+
+Si aparece un error de permisos, abre PowerShell como administrador y vuelve a ejecutarlo.
+
 ---
 
-## ▶️ Uso
-
-Desde cualquier carpeta (incluyendo el escritorio):
+## Uso
 
 ```bash
 convert-webm video.mp4
+convert-webm grabacion.mov
 ```
+
+El archivo de entrada debe estar en el escritorio. El archivo `.webm` se genera en la misma ubicación.
 
 ---
 
-## 🧪 Ejemplo
+## Codecs utilizados
+
+| Parámetro   | Valor        |
+|-------------|--------------|
+| Video       | VP9 (`libvpx-vp9`) |
+| Audio       | Opus (`libopus`) — omitido si el video no tiene audio |
+| CRF         | 32 (calidad constante, archivo compacto) |
+| Deadline    | `good` (equilibrio calidad/velocidad) |
+
+---
+
+## Ajuste de calidad
+
+| Calidad     | CRF  |
+|-------------|------|
+| Alta        | 28   |
+| Balance     | 30   |
+| Comprimido  | 32–35 |
+
+> Menor CRF = mejor calidad (archivo más pesado)
+
+---
+
+## Tests
 
 ```bash
-convert-webm vacaciones.mp4
+npm test
 ```
 
-### 📥 Input
-```
-C:\Users\<usuario>\Desktop\vacaciones.mp4
-```
-
-### 📤 Output
-```
-C:\Users\<usuario>\Desktop\vacaciones.webm
-```
+Cubre validación de formatos, rutas, nombres con espacios, Unicode y protección de sobreescritura.  
+Las pruebas de conversión real requieren un archivo de video disponible localmente.
 
 ---
 
-## ⚙️ Configuración de conversión
-
-El script utiliza:
-
-- 🎥 Video Codec: **VP9 (`libvpx-vp9`)**
-- 🔊 Audio Codec: **Opus (`libopus`)**
-- ⚖️ Modo: **calidad constante**
-
-### Parámetros aplicados:
+## Estructura
 
 ```
--crf 30
--b:v 0
--deadline good
+Convert-Webm/
+├── convert.js       # CLI principal
+├── convert.test.js  # Tests unitarios
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 🎯 Ajuste de calidad
+## Notas de compatibilidad
 
-| Nivel       | CRF |
-|------------|-----|
-| Alta       | 28  |
-| Balance    | 30  |
-| Comprimido | 32–35 |
+### Windows
+- El escritorio se detecta automáticamente, incluyendo rutas con OneDrive.
+- `USERPROFILE` debe estar definido (lo está en todas las instalaciones estándar de Windows).
 
-> 🔽 Menor CRF = mejor calidad (archivo más pesado)  
-> 🔼 Mayor CRF = menor tamaño (más compresión)
-
----
-
-## 📁 Estructura del proyecto
-
-```
-video-tools/
-│
-├── convert.js       # Script principal CLI
-├── package.json     # Configuración del proyecto
-└── README.md        # Documentación
-```
+### macOS
+- El escritorio se resuelve via `os.homedir() + /Desktop`.
+- El binario de FFmpeg para ARM64 e Intel se selecciona automáticamente por `@ffmpeg-installer/ffmpeg`.
+- El binario de FFmpeg y ffprobe para ARM64 e Intel se selecciona automáticamente.
+- En macOS puede ser necesario aprobar los scripts de instalación:
+  ```bash
+  npm install-scripts approve @ffmpeg-installer/darwin-arm64
+  npm install-scripts approve @ffprobe-installer/darwin-arm64
+  npm install
+  ```
 
 ---
 
-## 🧠 Cómo funciona
-
-1. Recibe el nombre del archivo como argumento
-2. Construye la ruta al escritorio automáticamente
-3. Verifica que el archivo exista
-4. Ejecuta FFmpeg usando fluent-ffmpeg
-5. Genera el archivo `.webm` en el mismo escritorio
-
----
-
-## ⚠️ Requisitos
-
-- Node.js ≥ 16
-- npm ≥ 8
-
-Dependencias:
-
-- `@ffmpeg-installer/ffmpeg`
-- `fluent-ffmpeg`
-
----
-
-## 🐛 Troubleshooting
-
-### ❌ `convert-webm` no es reconocido
-
-Ejecuta:
-
-```bash
-npm link
-```
-
-Luego reinicia la terminal.
-
----
-
-### ❌ Archivo no encontrado
-
-Asegúrate de:
-
-- El archivo está en el escritorio
-- El nombre coincide exactamente (incluyendo extensión)
-
----
-
-### ❌ Conversión lenta
-
-Esto es normal con VP9 (alta compresión).
-
-Opciones:
-
-- Aumentar `crf` (ej: 32–35)
-- Cambiar `deadline` a `realtime` (menos calidad, más rápido)
-
----
-
-### ❌ Error de permisos
-
-Ejecuta PowerShell como administrador (en casos raros).
-
----
-
-## 🔥 Uso avanzado (futuro)
-
-Ejemplos de posibles mejoras:
-
-```bash
-convert-webm video.mp4 --quality=high
-convert-webm video.mp4 --output=C:\videos
-convert-webm *.mp4
-convert-webm video.mp4 --parallel=4
-```
-
----
-
-## 🧠 Roadmap
-
-- [ ] Soporte para múltiples archivos
-- [ ] Parámetros CLI (`--quality`, `--output`)
-- [ ] Procesamiento en paralelo
-- [ ] Detección automática de resolución
-- [ ] Barra de progreso avanzada
-- [ ] Soporte cross-platform (Mac/Linux)
-
----
-
-## 📄 Licencia
+## Licencia
 
 MIT
-
----
-
-## 👨‍💻 Autor
-
-Herramienta desarrollada para automatización de conversión de video y flujos de trabajo eficientes.
-
----
-
-## ⭐ Filosofía
-
-> Simplicidad + Automatización + Performance
-
----
-
-## 🔗 Tecnologías usadas
-
-- Node.js
-- FFmpeg
-- fluent-ffmpeg
-
----
-
-## 🏁 Conclusión
-
-Este CLI está diseñado para ser:
-
-- ⚡ Rápido de usar  
-- 🧠 Inteligente en defaults  
-- 🔧 Extensible  
-- 💼 Profesional  
-
-Ideal para automatizar conversiones sin complicaciones.
