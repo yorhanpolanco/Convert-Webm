@@ -6,7 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { resolveDesktopPath, validateInput, buildOutputPath } = require('./convert');
+const { validateInput, buildOutputPath } = require('./convert');
 
 // Temp directory for files created during tests
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'convert-test-'));
@@ -17,26 +17,6 @@ function tmpFile(name) {
 
 after(() => {
   fs.rmSync(TMP, { recursive: true, force: true });
-});
-
-// ---------------------------------------------------------------------------
-// resolveDesktopPath
-// ---------------------------------------------------------------------------
-
-describe('resolveDesktopPath', () => {
-  test('returns a non-empty string', () => {
-    const result = resolveDesktopPath();
-    assert.ok(typeof result === 'string' && result.length > 0);
-  });
-
-  test('path contains "Desktop" or "Escritorio" segment', () => {
-    const result = resolveDesktopPath();
-    const normalised = result.replace(/\\/g, '/');
-    assert.ok(
-      normalised.includes('/Desktop') || normalised.includes('/Escritorio'),
-      `Expected a desktop path, got: ${result}`
-    );
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -65,19 +45,19 @@ describe('validateInput', () => {
   test('rejects .avi extension', () => {
     const file = tmpFile('sample.avi');
     fs.writeFileSync(file, '');
-    assert.throws(() => validateInput(file), /Unsupported format/);
+    assert.throws(() => validateInput(file), /no es compatible/);
   });
 
   test('rejects .mkv extension', () => {
     const file = tmpFile('sample.mkv');
     fs.writeFileSync(file, '');
-    assert.throws(() => validateInput(file), /Unsupported format/);
+    assert.throws(() => validateInput(file), /no es compatible/);
   });
 
   test('rejects file that does not exist', () => {
     assert.throws(
       () => validateInput(tmpFile('ghost.mp4')),
-      /Input file not found/
+      /No se encontró el archivo/
     );
   });
 
@@ -127,7 +107,7 @@ describe('buildOutputPath', () => {
     const output = tmpFile('existing.webm');
     fs.writeFileSync(input, '');
     fs.writeFileSync(output, '');
-    assert.throws(() => buildOutputPath(input), /Output already exists/);
+    assert.throws(() => buildOutputPath(input), /ya existe/);
   });
 
   test('handles filenames with spaces', () => {
