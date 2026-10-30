@@ -1,6 +1,6 @@
 {
   "name": "video-tools",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "engines": {
     "node": ">=18"
   },
@@ -8,7 +8,7 @@
     "convert-webm": "./convert.js"
   },
   "scripts": {
-    "test": "node --test convert.test.js"
+    "test": "node --test"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
